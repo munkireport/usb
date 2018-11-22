@@ -21,3 +21,11 @@ Database:
 
 Thanks to MiqViq for starting work on this module and bochoven for rewritting the USB script in Python
 
+Configuration
+-------------
+
+By default the USB module will collect information on all USB devices.
+Setting `USB_INTERNAL` to `FALSE` will skip all internal devices.
+```
+USB_INTERNAL=TRUE
+```

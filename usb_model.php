@@ -41,6 +41,9 @@ class Usb_model extends \Model {
 		//$this->create_table();
 
 		$this->serial_number = $serial;
+		
+		// Add local config
+		configAppendFile(__DIR__ . '/config.php');
 	}
 	
 	// ------------------------------------------------------------------------
