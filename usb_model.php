@@ -187,7 +187,7 @@ class Usb_model extends \Model {
 				'Composite Device' => 'composite device',
 				'Network' => 'network|ethernet|modem|bcm',
 				'UPS' => 'ups',
-				'Audio Device' => 'audio|sound|headset|mircophone|akm',
+				'Audio Device' => 'audio|sound|headset|microphone|akm',
 				'TouchBar' => 'ibridge',
 				'Scanner' => 'scanner',
 				'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
