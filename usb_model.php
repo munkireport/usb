@@ -20,25 +20,7 @@ class Usb_model extends \Model {
 		$this->rs['bus_power_used'] = 0;
 		$this->rs['extra_current_used'] = 0;
 		$this->rs['usb_serial_number'] = ''; // USB device serial number
-		$this->rs['printer_id'] = ''; $this->rt['printer_id'] = 'TEXT'; // 1284 Device ID information, only used by printers
-
-		// Schema version, increment when creating a db migration
-		$this->schema_version = 0;
-
-		// Add indexes
-		$this->idx[] = array('name');
-		$this->idx[] = array('type');
-		$this->idx[] = array('manufacturer');
-		$this->idx[] = array('vendor_id');
-		$this->idx[] = array('device_speed');
-		$this->idx[] = array('internal');
-		$this->idx[] = array('bus_power');
-		$this->idx[] = array('bus_power_used');
-		$this->idx[] = array('extra_current_used');
-		$this->idx[] = array('usb_serial_number');
-        
-		// Create table if it does not exist
-		//$this->create_table();
+		$this->rs['printer_id'] = ''; // 1284 Device ID information, only used by printers
 
 		$this->serial_number = $serial;
 		
@@ -150,9 +132,9 @@ class Usb_model extends \Model {
             
 			// Skip internal devices if value is TRUE
 			if (!conf('usb_internal')) {
-    			if ($device['internal']){
+				if ($device['internal']){
 					continue;
-    			}
+				}
 			}
 			 
 			// Adjust names
@@ -183,7 +165,7 @@ class Usb_model extends \Model {
 				'iPod' => 'ipod',
 				'Mouse' => 'mouse|ps2 orbit|trackpad',
 				'Mass Storage' => 'card reader|os x install disk|apple usb superdrive|ultra fast media reader|usb to serial-ata bridge',
-				'Display' => 'displaylink|display|monitor',
+				'Display' => 'displaylink|display|monitor|touchscreen',
 				'Composite Device' => 'composite device',
 				'Network' => 'network|ethernet|modem|bcm',
 				'UPS' => 'ups',
@@ -229,7 +211,7 @@ class Usb_model extends \Model {
 				preg_match('/\((.*?)\)/s', $device['vendor_id'], $manufactureroutput);
 				$device['manufacturer'] = $manufactureroutput[1];
 			}
-            }
+		}
             
 			foreach ($typeList as $key => $value) {
 				$this->rs[$key] = $value;
