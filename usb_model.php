@@ -23,9 +23,6 @@ class Usb_model extends \Model {
 		$this->rs['printer_id'] = ''; // 1284 Device ID information, only used by printers
 
 		$this->serial_number = $serial;
-		
-		// Add local config
-		configAppendFile(__DIR__ . '/config.php');
 	}
 	
 	// ------------------------------------------------------------------------
@@ -131,8 +128,8 @@ class Usb_model extends \Model {
 			}
             
 			// Skip internal devices if value is TRUE
-			if (!conf('usb_internal')) {
-				if ($device['internal']){
+			if (!$this->config['usb_internal']) {
+    			if ($device['internal']){
 					continue;
 				}
 			}
