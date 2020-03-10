@@ -40,6 +40,9 @@ class Usb_model extends \Model {
 		// Create table if it does not exist
 		//$this->create_table();
 
+		// Add local config
+		configAppendFile(__DIR__ . '/config.php');
+
 		$this->serial_number = $serial;
 	}
 	
@@ -146,7 +149,7 @@ class Usb_model extends \Model {
 			}
             
 			// Skip internal devices if value is TRUE
-			if (!$this->config['usb_internal']) {
+			if (!conf('usb_internal')) {
     			if ($device['internal']){
 					continue;
     			}
