@@ -14,9 +14,6 @@ class Usb_controller extends Module_controller
 	{
 		// Store module path
 		$this->module_path = dirname(__FILE__);
-		
-		// Add local config
-		$this->config = require(__DIR__ . '/config.php');
 	}
 
 	/**
