@@ -42,7 +42,7 @@ class Usb_controller extends Module_controller
                 ORDER BY count DESC";
 
         $out = array();
-        $queryobj = new Ibridge_model;
+        $queryobj = new Usb_model;
         foreach ($queryobj->query($sql) as $obj) {
             if ("$obj->count" !== "0") {
                 $obj->name = $obj->name ? $obj->name : 'Unknown';
@@ -69,7 +69,7 @@ class Usb_controller extends Module_controller
                 ORDER BY count DESC";
 
         $out = array();
-        $queryobj = new Ibridge_model;
+        $queryobj = new Usb_model;
         foreach ($queryobj->query($sql) as $obj) {
             if ("$obj->count" !== "0") {
                 $obj->type = $obj->type ? $obj->type : 'Unknown';
