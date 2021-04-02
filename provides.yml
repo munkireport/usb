@@ -1,0 +1,18 @@
+client_tabs:
+    usb-tab:
+        view: usb_tab
+        i18n: usb.devices
+        badge: usb-cnt
+listings:
+    usb:
+        view: usb_listing
+        i18n: usb.devices
+reports:
+    peripheral:
+        view: usb_report
+        i18n: usb.report
+widgets:
+    usb_devices:
+        view: usb_devices_widget
+    usb_types:
+        view: usb_types_widget

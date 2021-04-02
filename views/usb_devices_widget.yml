@@ -1,0 +1,9 @@
+type: scrollbox
+widget_id: usb-devices-widget
+api_url: /module/usb/get_usb_devices
+i18n_title: usb.clienttab
+icon: fa-usb
+listing_link: /show/listing/usb/usb
+search_key: name
+i18n_empty_result: usb.nousb
+badge: count
