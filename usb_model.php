@@ -29,54 +29,6 @@ class Usb_model extends \Model {
 	}
 
 	// ------------------------------------------------------------------------
-
-
-     /**
-     * Get USB device names for widget
-     *
-     **/
-     public function get_usb_devices()
-     {
-        $out = array();
-        $sql = "SELECT COUNT(CASE WHEN name <> '' AND name IS NOT NULL THEN 1 END) AS count, name 
-                FROM usb
-                LEFT JOIN reportdata USING (serial_number)
-                ".get_machine_group_filter()."
-                GROUP BY name
-                ORDER BY count DESC";
-        
-        foreach ($this->query($sql) as $obj) {
-            if ("$obj->count" !== "0") {
-                $obj->name = $obj->name ? $obj->name : 'Unknown';
-                $out[] = $obj;
-            }
-        }
-        return $out;
-     }
-
-     /**
-     * Get USB device types for widget
-     *
-     **/
-     public function get_usb_types()
-     {
-        $out = array();
-        $sql = "SELECT COUNT(CASE WHEN type <> '' AND type IS NOT NULL THEN 1 END) AS count, type 
-                FROM usb
-                LEFT JOIN reportdata USING (serial_number)
-                ".get_machine_group_filter()."
-                GROUP BY type
-                ORDER BY count DESC";
-        
-        foreach ($this->query($sql) as $obj) {
-            if ("$obj->count" !== "0") {
-                $obj->type = $obj->type ? $obj->type : 'Unknown';
-                $out[] = $obj;
-            }
-        }
-        return $out;
-     }
-
 	/**
 	 * Process data sent by postflight
 	 *
@@ -85,7 +37,7 @@ class Usb_model extends \Model {
 	 **/
 	function process($plist)
 	{
-
+        // Check if we have data
 		if ( ! $plist){
 			throw new Exception("Error Processing Request: No property list found", 1);
 		}
@@ -97,21 +49,7 @@ class Usb_model extends \Model {
 		$parser->parse($plist, CFPropertyList::FORMAT_XML);
 		$myList = $parser->toArray();
 
-		$typeList = array(
-			'name' => '',
-			'type' => 'unknown', // Mouse, Trackpad, Hub, etc.
-			'manufacturer' => '',
-			'vendor_id' => '',
-			'device_speed' => '', // Speed
-			'internal' => 0, // True or False
-			'media' => 0, // True or False
-			'bus_power' => 0,
-			'bus_power_used' => 0,
-			'extra_current_used' => 0,
-			'usb_serial_number' => '',
-			'printer_id' => ''
-		);
-
+        // Process each device
 		foreach ($myList as $device) {
 			// Check if we have a name
 			if( ! array_key_exists("name", $device)){
@@ -175,6 +113,7 @@ class Usb_model extends \Model {
 				'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
 				'Interactive Board' => 'smartboard|activboard'
 			);
+
 			$device_name = strtolower($device['name']);
 			foreach($device_types as $type => $pattern){
 				if (preg_match('/'.$pattern.'/', $device_name)){
@@ -202,18 +141,19 @@ class Usb_model extends \Model {
 
 			// Adjust Apple vendor ID
 			if (array_key_exists('vendor_id',$device)) {
-			if ($device['vendor_id'] == 'apple_vendor_id') {
-				$device['vendor_id'] = '0x05ac (Apple, Inc.)';
-			}
+                if ($device['vendor_id'] == 'apple_vendor_id') {
+                    $device['vendor_id'] = '0x05ac (Apple, Inc.)';
+                }
 
-			// Set manufacturer from vendor ID if it's blank
-			if ($device['manufacturer'] == '') {
-				preg_match('/\((.*?)\)/s', $device['vendor_id'], $manufactureroutput);
-				$device['manufacturer'] = $manufactureroutput[1];
-			}
-		}
+                // Set manufacturer from vendor ID if it's blank
+                if ($device['manufacturer'] == '' && $device['vendor_id'] != '') {
+                    preg_match('/\((.*?)\)/s', $device['vendor_id'], $manufactureroutput);
+                    $device['manufacturer'] = $manufactureroutput[1];
+                }
+            }
 
-			foreach ($typeList as $key => $value) {
+            // Process each key
+			foreach ($this->rs as $key => $value) {
 				$this->rs[$key] = $value;
 				if(array_key_exists($key, $device))
 				{

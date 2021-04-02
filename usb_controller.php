@@ -8,7 +8,7 @@
  **/
 class Usb_controller extends Module_controller
 {
-	
+
 	/*** Protect methods with auth! ****/
 	function __construct()
 	{
@@ -30,38 +30,54 @@ class Usb_controller extends Module_controller
      * Get USB device names for widget
      *
      * @return void
-     * @author John Eberle (tuxudo)
+     * @author tuxudo
      **/
      public function get_usb_devices()
      {
-        $obj = new View();
+        $sql = "SELECT COUNT(CASE WHEN name <> '' AND name IS NOT NULL THEN 1 END) AS count, name 
+                FROM usb
+                LEFT JOIN reportdata USING (serial_number)
+                ".get_machine_group_filter()."
+                GROUP BY name
+                ORDER BY count DESC";
 
-        if (! $this->authorized()) {
-            $obj->view('json', array('msg' => array('error' => 'Not authenticated')));
-            return;
+        $out = array();
+        $queryobj = new Ibridge_model;
+        foreach ($queryobj->query($sql) as $obj) {
+            if ("$obj->count" !== "0") {
+                $obj->name = $obj->name ? $obj->name : 'Unknown';
+                $out[] = $obj;
+            }
         }
-        
-        $usb = new Usb_model;
-        $obj->view('json', array('msg' => $usb->get_usb_devices()));
+
+        jsonView($out);
      }
-    
+
      /**
      * Get USB device types for widget
      *
      * @return void
-     * @author John Eberle (tuxudo)
+     * @author tuxudo
      **/
      public function get_usb_types()
      {
-        $obj = new View();
+        $sql = "SELECT COUNT(CASE WHEN type <> '' AND type IS NOT NULL THEN 1 END) AS count, type 
+                FROM usb
+                LEFT JOIN reportdata USING (serial_number)
+                ".get_machine_group_filter()."
+                GROUP BY type
+                ORDER BY count DESC";
 
-        if (! $this->authorized()) {
-            $obj->view('json', array('msg' => array('error' => 'Not authenticated')));
-            return;
+        $out = array();
+        $queryobj = new Ibridge_model;
+        foreach ($queryobj->query($sql) as $obj) {
+            if ("$obj->count" !== "0") {
+                $obj->type = $obj->type ? $obj->type : 'Unknown';
+                $out[] = $obj;
+            }
         }
-        
-        $usb = new Usb_model;
-        $obj->view('json', array('msg' => $usb->get_usb_types()));
+
+        jsonView($out);
      }
     
 	/**
@@ -70,23 +86,15 @@ class Usb_controller extends Module_controller
      **/
     public function get_data($serial_number = '')
     {
-        $obj = new View();
+        // Remove non-serial number characters
+        $serial_number = preg_replace("/[^A-Za-z0-9_\-]]/", '', $serial_number);
 
-        if (! $this->authorized()) {
-            $obj->view('json', array('msg' => 'Not authorized'));
-        }
-        
-        $queryobj = new Usb_model();
-        
         $sql = "SELECT name, type, manufacturer, vendor_id, device_speed, internal, media, bus_power, bus_power_used, extra_current_used, usb_serial_number
                         FROM usb 
                         WHERE serial_number = '$serial_number'";
         
-        $usb_tab = $queryobj->query($sql);
-
-        $usb = new Usb_model;
-        //$obj->view('json', array('msg' => $usb->retrieve_records($serial_number)));
-        $obj->view('json', array('msg' => current(array('msg' => $usb_tab)))); 
+        $queryobj = new Usb_model;
+        jsonView($queryobj->query($sql));
     }
 		
 } // END class Usb_controller

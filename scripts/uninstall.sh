@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Remove usb script
+# Remove usb.py script
 rm -f "${MUNKIPATH}preflight.d/usb.py"
 
-# Remove usb_info.txt file
+# Remove usbinfo.plist file
 rm -f "${CACHEPATH}usbinfo.plist"

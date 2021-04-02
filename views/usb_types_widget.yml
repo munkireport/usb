@@ -1,0 +1,9 @@
+type: scrollbox
+widget_id: usb-types-widget
+api_url: /module/usb/get_usb_types
+i18n_title: usb.usbtype
+icon: fa-usb
+listing_link: /show/listing/usb/usb
+search_key: type
+i18n_empty_result: usb.nousb
+badge: count

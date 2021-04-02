@@ -64,23 +64,14 @@ def flatten_usb_info(array):
 
 def main():
     """Main"""
-    # Create cache dir if it does not exist
-    cachedir = '%s/cache' % os.path.dirname(os.path.realpath(__file__))
-    if not os.path.exists(cachedir):
-        os.makedirs(cachedir)
-
-    # Skip manual check
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'manualcheck':
-            print 'Manual check: skipping'
-            exit(0)
 
     # Get results
     result = dict()
     info = get_usb_info()
     result = flatten_usb_info(info)
-    
-        # Write bluetooth results to cache
+
+    # Write bluetooth results to cache
+    cachedir = '%s/cache' % os.path.dirname(os.path.realpath(__file__))
     output_plist = os.path.join(cachedir, 'usbinfo.plist')
     plistlib.writePlist(result, output_plist)
     #print plistlib.writePlistToString(result)

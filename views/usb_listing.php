@@ -3,11 +3,8 @@
 <div class="container">
   <div class="row">
 	<div class="col-lg-12">
-
 	  <h3><span data-i18n="usb.reporttitle"></span> <span id="total-count" class='label label-primary'>…</span></h3>
-
 	  <table class="table table-striped table-condensed table-bordered">
-
 		<thead>
 		  <tr>
 			<th data-i18n="listing.computername" data-colname='machine.computer_name'></th>
@@ -21,13 +18,11 @@
 			<th data-i18n="usb.media" data-colname='usb.media'></th>
 		  </tr>
 		</thead>
-
 		<tbody>
 		  <tr>
 			<td data-i18n="listing.loading" colspan="9" class="dataTables_empty"></td>
 		  </tr>
 		</tbody>
-
 	  </table>
 	</div> <!-- /span 12 -->
   </div> <!-- /row -->
@@ -82,11 +77,6 @@
                             }
                         });
 
-                    }
-        		    // IDK what this does
-                    if(d.search.value.match(/^\d+\.\d+(\.(\d+)?)?$/)){
-                        var search = d.search.value.split('.').map(function(x){return ('0'+x).slice(-2)}).join('');
-                        d.search.value = search;
                     }
                 }
             },

@@ -8,7 +8,7 @@ $(document).on('appReady', function(){
 		$('#usb-cnt').text(data.length);
 		var skipThese = ['id','name','printer_id'];
 		$.each(data, function(i,d){
-			
+
 			// Generate rows from data
 			var rows = ''
 			for (var prop in d){
