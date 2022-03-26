@@ -1,4 +1,4 @@
-#!/usr/local/munkireport/munkireport-python2
+#!/usr/local/bin/python3
 
 """
 USB device info for munkireport.
@@ -9,7 +9,6 @@ manufacturer, name, if internal.
 import subprocess
 import os
 import plistlib
-import sys
 
 
 def get_usb_info():
@@ -20,7 +19,10 @@ def get_usb_info():
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     (output, unused_error) = proc.communicate()
     try:
-        plist = plistlib.readPlistFromString(output)
+        try:
+            plist = plistlib.readPlistFromString(output)
+        except AttributeError as e:
+            plist = plistlib.loads(output)
         # system_profiler xml is an array
         sp_dict = plist[0]
         items = sp_dict['_items']
@@ -73,8 +75,11 @@ def main():
     # Write usb results to cache
     cachedir = '%s/cache' % os.path.dirname(os.path.realpath(__file__))
     output_plist = os.path.join(cachedir, 'usbinfo.plist')
-    plistlib.writePlist(result, output_plist)
-    #print plistlib.writePlistToString(result)
+    try:
+        plistlib.writePlist(info, output_plist)
+    except:
+        with open(output_plist, 'wb') as fp:
+            plistlib.dump(info, fp, fmt=plistlib.FMT_XML)
 
 
 if __name__ == "__main__":
