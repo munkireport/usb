@@ -113,7 +113,8 @@ class Usb_model extends \Model {
                 'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
                 'Interactive Board' => 'smartboard|activboard',
                 'Wireless Mouse Keyboard' => 'usb receiver|wireless receiver|wireless desktop receiver|dell universal receiver|2.4g receiver|nano transceiver',
-                'Ambient Light Sensor' => 'ambient light sensor'
+                'Ambient Light Sensor' => 'ambient light sensor',
+                'AirPod Case' => 'airpod'
             );
 
             // Set device type to be default of unknown
