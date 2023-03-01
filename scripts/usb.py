@@ -76,10 +76,10 @@ def main():
     cachedir = '%s/cache' % os.path.dirname(os.path.realpath(__file__))
     output_plist = os.path.join(cachedir, 'usbinfo.plist')
     try:
-        plistlib.writePlist(info, output_plist)
+        plistlib.writePlist(result, output_plist)
     except:
         with open(output_plist, 'wb') as fp:
-            plistlib.dump(info, fp, fmt=plistlib.FMT_XML)
+            plistlib.dump(result, fp, fmt=plistlib.FMT_XML)
 
 
 if __name__ == "__main__":
