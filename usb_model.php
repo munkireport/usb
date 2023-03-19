@@ -91,9 +91,9 @@ class Usb_model extends \Model {
             // Make sure printer_id is set
             $device['printer_id'] = isset($device['printer_id']) ? $device['printer_id'] : '';
 
-            // Map name to device type
+             // Map name to device type
             $device_types = array(
-                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack',
+                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl',
                 'USB Hub' => 'hub',
                 'Keyboard' => 'keyboard|keykoard|usb kb',
                 'IR Receiver' => 'ir receiver',
@@ -102,19 +102,20 @@ class Usb_model extends \Model {
                 'iPad' => 'ipad',
                 'iPod' => 'ipod',
                 'Mouse' => 'mouse|ps2 orbit|trackpad',
-                'Mass Storage' => 'card reader|os x install disk|apple usb superdrive|ultra fast media reader|usb to serial-ata bridge|macBook air superdrive',
-                'Audio Device' => 'audio|sound|headset|microphone|akm|apc mini',
-                'Display' => 'displaylink|display|monitor|touchscreen',
+                'Mass Storage' => 'card reader|os x install disk|superdrive|ultra fast media reader|usb to serial-ata bridge|superdrive|mass storage|superdrive',
+                'Audio Device' => 'audio|sound|headset|microphone|akm|apc mini|yealink|at2020usb|cmteck',
+                'Display' => 'displaylink|display|monitor|touchscreen|billboard',
                 'Composite Device' => 'composite device',
                 'Network' => 'network|ethernet|modem|bcm|lan',
                 'UPS' => 'ups',
-                'iBridge' => 'ibridge|apple t2 controller|t2bus',
+                'iBridge' => 'ibridge|apple t2 controller|t2bus|apple t1 controller|touch bar|touchbar',
                 'Scanner' => 'scanner',
                 'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
                 'Interactive Board' => 'smartboard|activboard',
                 'Wireless Mouse Keyboard' => 'usb receiver|wireless receiver|wireless desktop receiver|dell universal receiver|2.4g receiver|nano transceiver',
                 'Ambient Light Sensor' => 'ambient light sensor',
-                'AirPod Case' => 'airpod'
+                'AirPod Case' => 'airpod',
+                'Apple Watch' => 'apple watch'
             );
 
             // Set device type to be default of unknown
