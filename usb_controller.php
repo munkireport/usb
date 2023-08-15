@@ -89,7 +89,7 @@ class Usb_controller extends Module_controller
         // Remove non-serial number characters
         $serial_number = preg_replace("/[^A-Za-z0-9_\-]]/", '', $serial_number);
 
-        $sql = "SELECT name, type, manufacturer, vendor_id, device_speed, internal, media, bus_power, bus_power_used, extra_current_used, usb_serial_number
+        $sql = "SELECT name, type, manufacturer, vendor_id, device_speed, device_speed_bps, internal, media, bus_power, bus_power_used, extra_current_used, usb_serial_number
                         FROM usb 
                         WHERE serial_number = '$serial_number'";
         

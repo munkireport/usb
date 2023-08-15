@@ -9,7 +9,12 @@ manufacturer, name, if internal.
 import subprocess
 import os
 import plistlib
+import sys
 
+sys.path.insert(0, '/usr/local/munki')
+sys.path.insert(0, '/usr/local/munkireport')
+
+from munkilib import FoundationPlist
 
 def get_usb_info():
     '''Uses system profiler to get usb info for this machine.'''
@@ -30,14 +35,14 @@ def get_usb_info():
     except Exception:
         return {}
 
-def flatten_usb_info(array):
+def flatten_usb_info(array, localization):
     '''Un-nest USB devices, return array with objects with relevant keys'''
     out = []
     for obj in array:
         device = {'name': '', 'internal': 0, 'media': 0}
         for item in obj:
             if item == '_items':
-                out = out + flatten_usb_info(obj['_items'])
+                out = out + flatten_usb_info(obj['_items'], localization)
             elif item == '_name':
                 device['name'] = obj[item]
             elif item == 'vendor_id' or item == 'b_vendor_id':
@@ -46,6 +51,7 @@ def flatten_usb_info(array):
                 device['manufacturer'] = obj[item]
             elif item == 'device_speed' or item == 'e_device_speed':
                 device['device_speed'] = obj[item]
+                device['device_speed_bps'] = localization[obj[item]].strip()
             elif item == 'bus_power' or item == 'h_bus_power':
                 device['bus_power'] = obj[item]
             elif item == 'bus_power_used' or item == 'j_bus_power_used':
@@ -70,7 +76,24 @@ def main():
     # Get results
     result = dict()
     info = get_usb_info()
-    result = flatten_usb_info(info)
+
+    # Read in English localizations from SystemProfiler
+    if os.path.isfile('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/en.lproj/Localizable.strings'):
+        localization = FoundationPlist.readPlist('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/en.lproj/Localizable.strings')
+    elif os.path.isfile('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/English.lproj/Localizable.strings'):
+        localization = FoundationPlist.readPlist('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/English.lproj/Localizable.strings')
+    elif os.path.isfile('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/Localizable.loctable'):
+        localization_dict = FoundationPlist.readPlist('/System/Library/SystemProfiler/SPUSBReporter.spreporter/Contents/Resources/Localizable.loctable')
+        if "en" in localization_dict:
+            localization = localization_dict["en"]
+        elif "English" in localization_dict:
+            localization = localization_dict["English"]
+        else:
+            localization = {}
+    else:
+        localization = {}
+
+    result = flatten_usb_info(info, localization)
 
     # Write usb results to cache
     cachedir = '%s/cache' % os.path.dirname(os.path.realpath(__file__))

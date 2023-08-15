@@ -22,7 +22,7 @@ Table Schema
 * type - varchar(255) - type of device, manually set via model
 * manufacturer - varchar(255) - reported maker of device
 * vendor_id - varchar(255) - device's vendor ID
-* device_speed - varchar(255) - USB bus speed
+* device_speed - varchar(255) - USB bus protocol
 * internal - int - 0/1 for internal USB device
 * media - int - 0/1 for removable media device
 * bus_power - int - available bus power
@@ -30,3 +30,4 @@ Table Schema
 * extra_current_used - int - extra current being provided
 * usb_serial_number - varchar(255) - the serial number of the USB device
 * printer_id - TEXT - information about the connected USB printer
+* device_speed_bps - varchar(128) - USB device speed

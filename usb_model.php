@@ -21,6 +21,7 @@ class Usb_model extends \Model {
         $this->rs['extra_current_used'] = 0;
         $this->rs['usb_serial_number'] = ''; // USB device serial number
         $this->rs['printer_id'] = ''; // 1284 Device ID information, only used by printers
+        $this->rs['device_speed_bps'] = null; 
 
         // Add local config
         configAppendFile(__DIR__ . '/config.php');
@@ -80,7 +81,7 @@ class Usb_model extends \Model {
 
             // Adjust USB speeds
             if (array_key_exists("device_speed",$device)) {
-                $device['device_speed'] = str_replace(array('low_speed','full_speed','high_speed','super_speed'), array('USB 1.0','USB 1.1','USB 2.0','USB 3.x'), $device['device_speed']);
+                $device['device_speed'] = str_replace(array('low_speed','full_speed','high_speed','super_speed_plus_by_2','super_speed_plus','super_speed'), array('USB 1.0','USB 1.1','USB 2.0','USB 3.x','USB 3.x','USB 3.x'), $device['device_speed']);
             } else {
                 $device['device_speed'] = 'USB 1.1';
             }

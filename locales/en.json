@@ -4,6 +4,7 @@
     "camera": "Camera",
     "clienttab": "USB Devices",
     "device_speed": "USB Protocol",
+    "device_speed_bps": "Device Speed",
     "extra_current_used": "Extra mAh",
     "internal": "Internal",
     "manufacturer": "Manufacturer",
