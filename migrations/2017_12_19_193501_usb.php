@@ -78,7 +78,7 @@ class Usb extends Migration
             $table->index('usb_serial_number');
         });
     }
-    
+
     public function down()
     {
         $capsule = new Capsule();

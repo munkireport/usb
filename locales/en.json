@@ -18,5 +18,7 @@
     "usbtype": "USB Device Types",
     "vendor_id": "Vendor ID",
     "devices": "USB Devices",
+    "timestamp": "Was Last Connected",
+    "connected": "Currently Connected",
     "report": "USB Report"
 }

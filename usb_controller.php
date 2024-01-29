@@ -61,7 +61,7 @@ class Usb_controller extends Module_controller
      **/
      public function get_usb_types()
      {
-        $sql = "SELECT COUNT(CASE WHEN type <> '' AND type IS NOT NULL THEN 1 END) AS count, type 
+        $sql = "SELECT COUNT(CASE WHEN type <> '' AND type IS NOT NULL THEN 1 END) AS count, type
                 FROM usb
                 LEFT JOIN reportdata USING (serial_number)
                 ".get_machine_group_filter()."
@@ -89,9 +89,9 @@ class Usb_controller extends Module_controller
         // Remove non-serial number characters
         $serial_number = preg_replace("/[^A-Za-z0-9_\-]]/", '', $serial_number);
 
-        $sql = "SELECT name, type, manufacturer, vendor_id, device_speed, device_speed_bps, internal, media, bus_power, bus_power_used, extra_current_used, usb_serial_number
+        $sql = "SELECT `name`, `type`, `manufacturer`, `vendor_id`, `device_speed`, `device_speed_bps`, `internal`, `media`, `bus_power`, `bus_power_used`, `extra_current_used`, `usb_serial_number`, `connected`, `timestamp`
                         FROM usb 
-                        WHERE serial_number = '$serial_number'";
+                        WHERE `serial_number` = '$serial_number'";
         
         $queryobj = new Usb_model;
         jsonView($queryobj->query($sql));

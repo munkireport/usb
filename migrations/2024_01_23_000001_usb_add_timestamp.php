@@ -3,7 +3,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-class UsbAddDeviceSpeedBps extends Migration
+class UsbAddTimestamp extends Migration
 {
     private $tableName = 'usb';
 
@@ -11,17 +11,20 @@ class UsbAddDeviceSpeedBps extends Migration
     {
         $capsule = new Capsule();
         $capsule::schema()->table($this->tableName, function (Blueprint $table) {
-            $table->string('device_speed_bps',128)->nullable();
-            
-            $table->index('device_speed_bps');
+            $table->bigInteger('timestamp')->nullable();
+            $table->boolean('connected')->nullable();
         });
+
+        # Force reload USB data
+        $capsule::unprepared("UPDATE hash SET hash = 'x' WHERE name = '$this->tableName'");
     }
 
     public function down()
     {
         $capsule = new Capsule();
         $capsule::schema()->table($this->tableName, function (Blueprint $table) {
-            $table->dropColumn('device_speed_bps');
+            $table->dropColumn('timestamp');
+            $table->dropColumn('connected');
         });
     }
 }

@@ -1,0 +1,20 @@
+i18n_title: usb.reporttitle
+js_link: module/usb/js/usb
+not_null_column: usb.name
+table:
+  - column: machine.computer_name
+    i18n_header: listing.computername
+    formatter: clientDetail
+    tab_link: usb-tab
+  - column: reportdata.serial_number
+    i18n_header: serial
+  - {i18n_header: usb.name, column: usb.name}
+  - {i18n_header: usb.type, column: usb.type}
+  - {i18n_header: usb.manufacturer, column: usb.manufacturer}
+  - {i18n_header: usb.vendor_id, column: usb.vendor_id}
+  - {i18n_header: usb.connected, column: usb.connected, formatter: format_usb_yes_no}
+  - {i18n_header: usb.device_speed, column: usb.device_speed}
+  - {i18n_header: usb.device_speed_bps, column: usb.device_speed_bps}
+  - {i18n_header: usb.internal, column: usb.internal, formatter: format_usb_internal}
+  - {i18n_header: usb.media, column: usb.media, formatter: format_usb_yes_no}
+  - {i18n_header: usb.timestamp, column: usb.timestamp, formatter: timestampToMoment}

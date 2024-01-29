@@ -6,7 +6,7 @@ class Usb_model extends \Model {
 
     function __construct($serial='')
     {
-        parent::__construct('id', 'usb'); //primary key, tablename
+        parent::__construct('id', 'usb'); // Primary key, tablename
         $this->rs['id'] = '';
         $this->rs['serial_number'] = $serial;
         $this->rs['name'] = '';
@@ -22,6 +22,8 @@ class Usb_model extends \Model {
         $this->rs['usb_serial_number'] = ''; // USB device serial number
         $this->rs['printer_id'] = ''; // 1284 Device ID information, only used by printers
         $this->rs['device_speed_bps'] = null; 
+        $this->rs['timestamp'] = null; // Unix time when the report was uploaded
+        $this->rs['connected'] = 0; // True or False of if device is currently connected
 
         // Add local config
         configAppendFile(__DIR__ . '/config.php');
@@ -43,8 +45,27 @@ class Usb_model extends \Model {
             throw new Exception("Error Processing Request: No property list found", 1);
         }
 
-        // Delete previous set        
-        $this->deleteWhere('serial_number=?', $this->serial_number);
+        // If we didn't specify in the config that we like history then
+        // we nuke any data we had with this computer's serial number
+        if (! conf('usb_historical')) {
+            $this->deleteWhere('serial_number=?', $this->serial_number);
+        } else {
+
+            // Set all USB devices to "0" for not connected, but only if we're keeping historical devices
+            $sql = "UPDATE `usb` 
+                    SET `connected` = '0'
+                    WHERE `serial_number` = '$this->serial_number' AND `name` <> 'T2Bus' AND `name` <> 'Internal Memory Card Reader'";
+                    // Never set T2Bus and Internal Memory Card Reader as not connected
+            $this->query($sql);
+        }
+
+        // Delete internal devices if we don't want to keep those
+        if (! conf('usb_internal')) {
+            $this->deleteWhere('serial_number=? AND internal=?', array($this->serial_number, "1"));
+        }
+
+        // Timestamp added by the server
+        $this->timestamp = time();
 
         $parser = new CFPropertyList();
         $parser->parse($plist, CFPropertyList::FORMAT_XML);
@@ -69,8 +90,8 @@ class Usb_model extends \Model {
                 continue;
             }
 
-            // Skip internal devices if value is TRUE
-            if (!conf('usb_internal')) {
+            // Skip internal devices if value is FALSE
+            if (! conf('usb_internal')) {
                 if ($device['internal']){
                     continue;
                 }
@@ -78,6 +99,17 @@ class Usb_model extends \Model {
 
             // Adjust names
             $device['name'] = str_replace(array('bluetooth_device','hub_device','composite_device'), array('Bluetooth USB Host Controller','USB Hub','Composite Device'), $device['name']);
+
+            // Override Internal T/F based on name
+            if (stripos($device['name'], 'Internal') !== false || stripos($device['name'], 'Built-in') !== false || stripos($device['name'], 'T2Bus') !== false || stripos($device['name'], 'IR Receiver') !== false || stripos($device['name'], 'Apple T2 Controller') !== false || stripos($device['name'], 'Ambient Light Sensor') !== false || stripos($device['name'], 'Touch Bar Display') !== false || stripos($device['name'], 'Touch Bar Backlight') !== false || stripos($device['name'], 'BRCM20702 Hub') !== false || stripos($device['name'], 'BRCM2046 Hub') !== false || stripos($device['name'], 'BRCM2046 Hub') !== false || stripos($device['name'], 'Apple T1 Controller') !== false || (stripos($device['name'], 'Bluetooth Controller') !== false && $device['manufacturer'] = "Apple, Inc.") || (stripos($device['name'], 'Bluetooth Controller') !== false && stripos($device['vendor_id'], 'Broadcom') !== false) || (stripos($device['name'], 'Bluetooth USB Host Controller') !== false && stripos($device['vendor_id'], 'Apple') !== false)) {
+
+                $device['internal'] = 1;
+
+                // Skip internal devices if value is FALSE
+                if (! conf('usb_internal')) {
+                    continue;
+                }
+            }
 
             // Adjust USB speeds
             if (array_key_exists("device_speed",$device)) {
@@ -94,11 +126,12 @@ class Usb_model extends \Model {
 
              // Map name to device type
             $device_types = array(
-                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl',
+                'AV Adapter' => 'usb-c digital av multiport adapter|usb type-c digital av adapter|video adaptor',
+                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl|logitech brio',
                 'USB Hub' => 'hub',
                 'Keyboard' => 'keyboard|keykoard|usb kb',
                 'IR Receiver' => 'ir receiver',
-                'Bluetooth Controller' => 'bluetooth',
+                'Bluetooth Controller' => 'bluetooth|bt-68 dongle|bt-88 dongle',
                 'iPhone' => 'iphone',
                 'iPad' => 'ipad',
                 'iPod' => 'ipod',
@@ -131,6 +164,9 @@ class Usb_model extends \Model {
                 }
             }
 
+            // Set that the device is currently connected
+            $device['connected'] = 1;
+
             // Set device types based on other criteria
             if (stripos($device['manufacturer'], 'DisplayLink') !== false) {
                 $device['type'] = 'Display'; // Set by manufacturer instead of name
@@ -141,11 +177,6 @@ class Usb_model extends \Model {
             // Check for Mass Storage
             if ($device['media'] == 1 ) {
                 $device['type'] = 'Mass Storage';
-            }
-
-            // Override Internal T/F based on name
-            if (stripos($device['name'], 'Internal') !== false) {
-                $device['internal'] = 1;
             }
 
             // Adjust Apple vendor ID
@@ -161,12 +192,31 @@ class Usb_model extends \Model {
                 }
             }
 
+            // T2Bus is 0x05ac (Apple, Inc.)
+            if ($device['name'] == "T2Bus"){
+                $device['vendor_id'] = '0x05ac (Apple, Inc.)';
+                $device['manufacturer'] = 'Apple Inc.';
+            }
+
             // Process each key
             foreach ($this->rs as $key => $value) {
                 $this->rs[$key] = $value;
                 if(array_key_exists($key, $device))
                 {
                     $this->rs[$key] = $device[$key];
+                } else if ($key !== "serial_number" && $key !== "id" && $key !== "timestamp"){
+                    $this->rs[$key] = null;
+                }
+            }
+
+            // If we are to not keep historical data, do a selective delete
+            if (conf('usb_historical')) {
+                // Selectively delete display by matching different aspects of the USB device. Do NOT use USB device serial number
+                $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->vendor_id, $this->device_speed, $this->media));
+
+                // T2Bus is needs extra cleaning
+                if ($device['name'] == "T2Bus"){
+                    $this->deleteWhere('serial_number=? AND name=?', array($this->serial_number, $this->name));
                 }
             }
 

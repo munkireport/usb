@@ -17,32 +17,30 @@ $(document).on('appReady', function(){
 
             // Set count of USB devices
             $('#usb-cnt').text(data.length);
-            var skipThese = ['id','name','printer_id'];
             $.each(data, function(i,d){
 
                 // Generate rows from data
                 var rows = ''
                 for (var prop in d){
-                    // Skip skipThese
-                    if(skipThese.indexOf(prop) == -1){
-                        if(prop == 'internal' && d[prop] == 1){
-                           rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('yes')+'</td></tr>';
-                        }
-                        else if(prop == 'internal' && d[prop] == 0){
-                           rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('no')+'</td></tr>';
-                        } 
-                        else if(prop == 'media' && d[prop] == 1){
-                           rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('yes')+'</td></tr>';
-                        } 
-                        else if(prop == 'media' && d[prop] == 0){
-                           rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('no')+'</td></tr>';
-                        }
-                        else if(prop == 'usb_serial_number' && d[prop] == ''){
-                           // Do nothing for a blank device serial number
-                        } 
-                        else {
-                            rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+d[prop]+'</td></tr>';
-                        }
+                    if (d[prop] == null || prop == 'name'){
+                        // Do nothing for blank data
+                        rows = rows
+                    }
+                    else if(prop == 'usb_serial_number' && d[prop] == ''){
+                       // Do nothing for a blank device serial number
+                    }
+                    else if((prop == 'internal' || prop == 'media' || prop == 'connected') && d[prop] == 1){
+                       rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('yes')+'</td></tr>';
+                    }
+                    else if((prop == 'internal' || prop == 'media' || prop == 'connected') && d[prop] == 0){
+                       rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+i18n.t('no')+'</td></tr>';
+                    }
+                    else if(prop == 'timestamp' && d[prop] > 0){
+                       var date = new Date(d[prop] * 1000);
+                       rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td><span title="'+date+'">'+moment(date).fromNow()+'</td></tr>';
+                    }
+                    else {
+                        rows = rows + '<tr><th>'+i18n.t('usb.'+prop)+'</th><td>'+d[prop]+'</td></tr>';
                     }
                 }
                 $('#usb-tab')

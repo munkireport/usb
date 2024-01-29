@@ -16,6 +16,12 @@ Setting `USB_INTERNAL` to `FALSE` will skip all internal devices.
 USB_INTERNAL=TRUE
 ```
 
+By default the USB module will not store historical USB devices.
+Setting `USB_HISTORICAL` to `TRUE` will store historical USB devices.
+```
+USB_HISTORICAL=FALSE
+```
+
 Table Schema
 -----
 * name - varchar(255) - name of the USB device
@@ -31,3 +37,5 @@ Table Schema
 * usb_serial_number - varchar(255) - the serial number of the USB device
 * printer_id - TEXT - information about the connected USB printer
 * device_speed_bps - varchar(128) - USB device speed
+* timestamp - bigint - Timestamp of when USB device was last detected
+* connected - boolean - If device is currently connected
