@@ -48,7 +48,7 @@ $(document).on('appReady', function(){
                         .append($('<i>')
                             .addClass('fa fa-usb'))
                         .append(' '+d.name))
-                    .append($('<div style="max-width:370px;">')
+                    .append($('<div style="max-width:500px;">')
                         .addClass('table-responsive')
                         .append($('<table>')
                             .addClass('table table-striped table-condensed')

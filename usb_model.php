@@ -98,7 +98,7 @@ class Usb_model extends \Model {
             }
 
             // Adjust names
-            $device['name'] = str_replace(array('bluetooth_device','hub_device','composite_device'), array('Bluetooth USB Host Controller','USB Hub','Composite Device'), $device['name']);
+            $device['name'] = str_replace(array('bluetooth_device','hub_device','composite_device','generic_device'), array('Bluetooth USB Host Controller','USB Hub','Composite Device','USB Device'), $device['name']);
 
             // Override Internal T/F based on name
             if (stripos($device['name'], 'Internal') !== false || stripos($device['name'], 'Built-in') !== false || stripos($device['name'], 'T2Bus') !== false || stripos($device['name'], 'IR Receiver') !== false || stripos($device['name'], 'Apple T2 Controller') !== false || stripos($device['name'], 'Ambient Light Sensor') !== false || stripos($device['name'], 'Touch Bar Display') !== false || stripos($device['name'], 'Touch Bar Backlight') !== false || stripos($device['name'], 'BRCM20702 Hub') !== false || stripos($device['name'], 'BRCM2046 Hub') !== false || stripos($device['name'], 'BRCM2046 Hub') !== false || stripos($device['name'], 'Apple T1 Controller') !== false || (stripos($device['name'], 'Bluetooth Controller') !== false && $device['manufacturer'] = "Apple, Inc.") || (stripos($device['name'], 'Bluetooth Controller') !== false && stripos($device['vendor_id'], 'Broadcom') !== false) || (stripos($device['name'], 'Bluetooth USB Host Controller') !== false && stripos($device['vendor_id'], 'Apple') !== false)) {
@@ -126,8 +126,8 @@ class Usb_model extends \Model {
 
              // Map name to device type
             $device_types = array(
-                'AV Adapter' => 'usb-c digital av multiport adapter|usb type-c digital av adapter|video adaptor',
-                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl|logitech brio',
+                'AV Adapter' => 'usb-c digital av multiport adapter|usb type-c digital av adapter|video adaptor|usb type-c vga multiport adapter|multiport adapter|multiport pro',
+                'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl|logitech brio|usb capture hdmi',
                 'USB Hub' => 'hub',
                 'Keyboard' => 'keyboard|keykoard|usb kb',
                 'IR Receiver' => 'ir receiver',
@@ -135,21 +135,25 @@ class Usb_model extends \Model {
                 'iPhone' => 'iphone',
                 'iPad' => 'ipad',
                 'iPod' => 'ipod',
-                'Mouse' => 'mouse|ps2 orbit|trackpad',
-                'Mass Storage' => 'card reader|os x install disk|superdrive|ultra fast media reader|usb to serial-ata bridge|superdrive|mass storage|superdrive',
-                'Audio Device' => 'audio|sound|headset|microphone|akm|apc mini|yealink|at2020usb|cmteck',
+                'Mouse' => 'mouse|ps2 orbit|trackpad|trackball',
+                'Mass Storage' => 'card reader|os x install disk|superdrive|ultra fast media reader|usb to serial-ata bridge|superdrive|mass storage|superdrive|armoratd|flash disk|flash drive|u3 cruzer micro',
+                'Audio Device' => 'audio|sound|headset|microphone|akm|apc mini|yealink|at2020usb|cmteck|jabra|beats s|tesiraforte',
                 'Display' => 'displaylink|display|monitor|touchscreen|billboard',
                 'Composite Device' => 'composite device',
-                'Network' => 'network|ethernet|modem|bcm|lan',
+                'Network' => 'network|ethernet|modem|bcm|lan|ax88179a|rtl2832u',
                 'UPS' => 'ups',
                 'iBridge' => 'ibridge|apple t2 controller|t2bus|apple t1 controller|touch bar|touchbar',
-                'Scanner' => 'scanner',
+                'Scanner' => 'scanner|epson perfection',
                 'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
                 'Interactive Board' => 'smartboard|activboard',
                 'Wireless Mouse Keyboard' => 'usb receiver|wireless receiver|wireless desktop receiver|dell universal receiver|2.4g receiver|nano transceiver',
                 'Ambient Light Sensor' => 'ambient light sensor',
+                'Mac' => 'macbook|imac|mac mini|mac pro|mac studio|macintosh',
                 'AirPod Case' => 'airpod',
-                'Apple Watch' => 'apple watch'
+                'Apple Watch' => 'apple watch',
+                'Apple MagSafe' => 'magsafe charger',
+                'Apple Mobile Device' => 'apple mobile device|apple tv remote',
+                'Android Phone' => 'android'
             );
 
             // Set device type to be default of unknown
@@ -212,11 +216,30 @@ class Usb_model extends \Model {
             // If we are to not keep historical data, do a selective delete
             if (conf('usb_historical')) {
                 // Selectively delete display by matching different aspects of the USB device. Do NOT use USB device serial number
-                $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->vendor_id, $this->device_speed, $this->media));
+
+                // If we have a manufacturer, but no vendor ID
+                if ($device['manufacturer'] !== null && $device['vendor_id'] == null){
+                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->device_speed, $this->media));
+                }
+
+                // If we have a vendor ID, but no manufacturer
+                if ($device['manufacturer'] == null && $device['vendor_id'] !== null){
+                    $this->deleteWhere('serial_number=? AND name=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->vendor_id, $this->device_speed, $this->media));
+                }
+
+                // If we have a manufacturer and vendor ID
+                if ($device['manufacturer'] !== null && $device['vendor_id'] !== null){
+                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->vendor_id, $this->device_speed, $this->media));
+                }
 
                 // T2Bus is needs extra cleaning
                 if ($device['name'] == "T2Bus"){
                     $this->deleteWhere('serial_number=? AND name=?', array($this->serial_number, $this->name));
+                }
+
+                // Clean up "generic_device"
+                if ($device['name'] == "USB Device" && $device['device_speed'] == "USB 1.1"){
+                    $this->deleteWhere('serial_number=? AND name=? AND device_speed=?', array($this->serial_number, "generic_device", $this->device_speed));
                 }
             }
 
