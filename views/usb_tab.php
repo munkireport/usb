@@ -22,7 +22,7 @@ $(document).on('appReady', function(){
                 // Generate rows from data
                 var rows = ''
                 for (var prop in d){
-                    if (d[prop] == null || prop == 'name'){
+                    if ((d[prop] == null || prop == 'name') && d[prop] !== 0){
                         // Do nothing for blank data
                         rows = rows
                     }
