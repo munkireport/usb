@@ -9,24 +9,24 @@
 class Usb_controller extends Module_controller
 {
 
-	/*** Protect methods with auth! ****/
-	function __construct()
-	{
-		// Store module path
-		$this->module_path = dirname(__FILE__);
-	}
+    /*** Protect methods with auth! ****/
+    function __construct()
+    {
+        // Store module path
+        $this->module_path = dirname(__FILE__);
+    }
 
-	/**
-	 * Default method
-	 * @author miqviq
-	 *
-	 **/
-	function index()
-	{
-		echo "You've loaded the usb module!";
-	}
+    /**
+     * Default method
+     * @author miqviq
+     *
+     **/
+    function index()
+    {
+        echo "You've loaded the usb module!";
+    }
 
-	/**
+    /**
      * Get USB device names for widget
      *
      * @return void
@@ -79,8 +79,8 @@ class Usb_controller extends Module_controller
 
         jsonView($out);
      }
-    
-	/**
+
+    /**
      * Retrieve data in json format
      *
      **/
@@ -94,9 +94,9 @@ class Usb_controller extends Module_controller
                     LEFT JOIN reportdata USING (serial_number)
                     ".get_machine_group_filter()."
                     AND serial_number = '$serial_number'";
-        
+
         $queryobj = new Usb_model;
         jsonView($queryobj->query($sql));
     }
-		
+        
 } // END class Usb_controller

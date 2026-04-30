@@ -79,7 +79,7 @@ class Usb_model extends \Model {
             }
 
             // Skip Bus types USB31Bus, USB11Bus, etc.
-            if(preg_match('/^USB(\d+)?Bus$/', $device['name']))
+            if(preg_match('/^USB(\d+)?Bus$/', $device['name']) || $device['name'] == "USB 2.0 Bus" || $device['name'] == "USB 3.0 Bus" || $device['name'] == "USB 3.1 Bus" || $device['name'] == "USB 3.5 Bus" || $device['name'] == "USB 4.0 Bus")
             {
                 continue;
             }
@@ -126,7 +126,7 @@ class Usb_model extends \Model {
 
              // Map name to device type
             $device_types = array(
-                'AV Adapter' => 'usb-c digital av multiport adapter|usb type-c digital av adapter|video adaptor|usb type-c vga multiport adapter|multiport adapter|multiport pro',
+                'AV Adapter' => 'usb-c digital av multiport adapter|usb type-c digital av adapter|video adaptor|usb type-c vga multiport adapter|multiport adapter|multiport pro|usb-c vga multiport adapter',
                 'Camera' => 'isight|camera|video|facetime|webcam|cybertrack|brio|meeting owl|logitech brio|usb capture hdmi',
                 'USB Hub' => 'hub',
                 'Keyboard' => 'keyboard|keykoard|usb kb',
@@ -136,20 +136,21 @@ class Usb_model extends \Model {
                 'iPad' => 'ipad',
                 'iPod' => 'ipod',
                 'Mouse' => 'mouse|ps2 orbit|trackpad|trackball',
-                'Mass Storage' => 'card reader|os x install disk|superdrive|ultra fast media reader|usb to serial-ata bridge|superdrive|mass storage|superdrive|armoratd|flash disk|flash drive|u3 cruzer micro',
+                'Mass Storage' => 'card reader|os x install disk|superdrive|ultra fast media reader|usb to serial-ata bridge|superdrive|mass storage|superdrive|armoratd|flash disk|flash drive|u3 cruzer micro|flash disk|usb disk|cruzer dial|usb storage',
                 'Audio Device' => 'audio|sound|headset|microphone|akm|apc mini|yealink|at2020usb|cmteck|jabra|beats s|tesiraforte',
                 'Display' => 'displaylink|display|monitor|touchscreen|billboard',
                 'Composite Device' => 'composite device',
                 'Network' => 'network|ethernet|modem|bcm|lan|ax88179a|rtl2832u',
                 'UPS' => 'ups',
                 'iBridge' => 'ibridge|apple t2 controller|t2bus|apple t1 controller|touch bar|touchbar',
-                'Scanner' => 'scanner|epson perfection',
+                'Scanner' => 'scanner|epson perfection|scansnap',
                 'Wacom Tablet' => 'wacom|ptz-|intuos|ctl-',
                 'Interactive Board' => 'smartboard|activboard',
                 'Wireless Mouse Keyboard' => 'usb receiver|wireless receiver|wireless desktop receiver|dell universal receiver|2.4g receiver|nano transceiver',
                 'Ambient Light Sensor' => 'ambient light sensor',
                 'Mac' => 'macbook|imac|mac mini|mac pro|mac studio|macintosh',
-                'AirPod Case' => 'airpod',
+                'AirPods' => 'airpods',
+                'AirPod Case' => 'airpod|charging case|magsafe charger|magsafe charging',
                 'Apple Watch' => 'apple watch',
                 'Apple MagSafe' => 'magsafe charger',
                 'Apple Mobile Device' => 'apple mobile device|apple tv remote',
@@ -179,27 +180,41 @@ class Usb_model extends \Model {
             }
 
             // Check for Mass Storage
-            if ($device['media'] == 1 ) {
+            if (array_key_exists('media', $device) && $device['media'] == 1 ) {
                 $device['type'] = 'Mass Storage';
+            } elseif (array_key_exists('type', $device) && $device['type'] == 'Mass Storage') {
+                // Set removable media
+                $device['media'] = 1;
             }
 
             // Adjust Apple vendor ID
-            if (array_key_exists('vendor_id',$device)) {
+            if (array_key_exists('vendor_id', $device)) {
                 if ($device['vendor_id'] == 'apple_vendor_id') {
                     $device['vendor_id'] = '0x05ac (Apple, Inc.)';
                 }
 
                 // Set manufacturer from vendor ID if it's blank
-                if ($device['manufacturer'] == '' && $device['vendor_id'] != '') {
+                if ($device['manufacturer'] == '' && $device['vendor_id'] != '' && str_contains($device['vendor_id'], '(')) {
                     preg_match('/\((.*?)\)/s', $device['vendor_id'], $manufactureroutput);
                     $device['manufacturer'] = $manufactureroutput[1];
                 }
+            }
+
+            // Adjust bus power
+            if (array_key_exists('bus_power', $device) && str_contains($device['bus_power'], '(')) {
+                preg_match('/\((.*?)\)/s', $device['bus_power'], $bus_power_m);
+                $device['bus_power'] = $res = preg_replace("/[^0-9]/", "", $bus_power_m[1]);
             }
 
             // T2Bus is 0x05ac (Apple, Inc.)
             if ($device['name'] == "T2Bus"){
                 $device['vendor_id'] = '0x05ac (Apple, Inc.)';
                 $device['manufacturer'] = 'Apple Inc.';
+            }
+
+            // Null the manufacturer key if blank, must be one of the last things
+            if ($device['manufacturer'] == ''){
+                $device['manufacturer'] = null;
             }
 
             // Process each key
@@ -215,21 +230,21 @@ class Usb_model extends \Model {
 
             // If we are to not keep historical data, do a selective delete
             if (conf('usb_historical')) {
-                // Selectively delete display by matching different aspects of the USB device. Do NOT use USB device serial number
+                // Selectively delete device by matching different aspects of the USB device. Do NOT use USB device serial number
 
                 // If we have a manufacturer, but no vendor ID
                 if ($device['manufacturer'] !== null && $device['vendor_id'] == null){
-                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->device_speed, $this->media));
+                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND device_speed=?', array($this->serial_number, $this->name, $this->manufacturer, $this->device_speed));
                 }
 
                 // If we have a vendor ID, but no manufacturer
                 if ($device['manufacturer'] == null && $device['vendor_id'] !== null){
-                    $this->deleteWhere('serial_number=? AND name=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->vendor_id, $this->device_speed, $this->media));
+                    $this->deleteWhere('serial_number=? AND name=? AND vendor_id=? AND device_speed=?', array($this->serial_number, $this->name, $this->vendor_id, $this->device_speed));
                 }
 
                 // If we have a manufacturer and vendor ID
                 if ($device['manufacturer'] !== null && $device['vendor_id'] !== null){
-                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND vendor_id=? AND device_speed=? AND media=?', array($this->serial_number, $this->name, $this->manufacturer, $this->vendor_id, $this->device_speed, $this->media));
+                    $this->deleteWhere('serial_number=? AND name=? AND manufacturer=? AND vendor_id=? AND device_speed=?', array($this->serial_number, $this->name, $this->manufacturer, $this->vendor_id, $this->device_speed));
                 }
 
                 // T2Bus is needs extra cleaning

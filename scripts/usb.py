@@ -10,15 +10,20 @@ import subprocess
 import os
 import plistlib
 import sys
+import platform
 
-sys.path.insert(0, '/usr/local/munki')
 sys.path.insert(0, '/usr/local/munkireport')
 
 from munkilib import FoundationPlist
 
 def get_usb_info():
     '''Uses system profiler to get usb info for this machine.'''
-    cmd = ['/usr/sbin/system_profiler', 'SPUSBDataType', '-xml']
+
+    # If greater than macOS 15 (Darwin 24), use SPUSBHostDataType
+    if getDarwinVersion() > 24:
+        cmd = ['/usr/sbin/system_profiler', 'SPUSBHostDataType', '-xml']
+    else:
+        cmd = ['/usr/sbin/system_profiler', 'SPUSBDataType', '-xml']
     proc = subprocess.Popen(cmd, shell=False, bufsize=-1,
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -45,30 +50,49 @@ def flatten_usb_info(array, localization):
                 out = out + flatten_usb_info(obj['_items'], localization)
             elif item == '_name':
                 device['name'] = obj[item]
-            elif item == 'vendor_id' or item == 'b_vendor_id':
+            elif item == 'vendor_id' or item == 'b_vendor_id' or item == 'USBDeviceKeyVendorID':
                 device['vendor_id'] = obj[item]
-            elif item == 'manufacturer' or item == 'f_manufacturer':
+            elif item == 'manufacturer' or item == 'f_manufacturer' or item == 'USBDeviceKeyVendorName':
                 device['manufacturer'] = obj[item]
+            elif item == 'USBDeviceKeyLinkSpeed': # macOS 26+
+                device['device_speed_bps'] = obj[item]
+                if "Gb" in obj[item]:
+                    device['device_speed'] = 'USB 3.x'
+                elif "480" in obj[item]:
+                    device['device_speed'] = 'USB 2.0'
+                elif "1.5" in obj[item]:
+                    device['device_speed'] = 'USB 1.0'
+                else:
+                    device['device_speed'] = 'USB 1.1'
+
+                # This key no longer exists on macOS 26+
+                device.pop("media")
+
             elif item == 'device_speed' or item == 'e_device_speed':
                 device['device_speed'] = obj[item]
                 device['device_speed_bps'] = localization[obj[item]].strip()
-            elif item == 'bus_power' or item == 'h_bus_power':
+            elif item == 'bus_power' or item == 'h_bus_power' or item == 'USBDeviceKeyPowerAllocation':
                 device['bus_power'] = obj[item]
             elif item == 'bus_power_used' or item == 'j_bus_power_used':
                 device['bus_power_used'] = obj[item]
             elif item == 'extra_current_used' or item == 'k_extra_current_used':
                 device['extra_current_used'] = obj[item]
-            elif item == 'serial_num' or item == 'd_serial_num':
+            elif item == 'serial_num' or item == 'd_serial_num' or (item == 'USBDeviceKeySerialNumber' and obj[item] != 'Not Provided'):
                 device['usb_serial_number'] = obj[item]
             elif item == '1284DeviceID' or item == 'm_1284DeviceID':
                 device['printer_id'] = obj[item]
-            elif item == 'Built-in_Device' and obj[item] == 'Yes':
+            elif (item == 'Built-in_Device' and obj[item] == 'Yes') or (item == 'USBKeyHardwareType' and obj[item] == 'Built-in'):
                 device['internal'] = 1
             elif item == 'Media' or item == 'removable_media' :
                 device['media'] = 1
         out.append(device)
     return out
-    
+
+def getDarwinVersion():
+    """Returns the Darwin version."""
+    # Catalina -> 10.15.7 -> 19.6.0 -> 19
+    darwin_version_tuple = platform.release().split('.')
+    return int(darwin_version_tuple[0]) 
 
 def main():
     """Main"""
